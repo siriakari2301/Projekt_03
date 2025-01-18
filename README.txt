@@ -1,3 +1,9 @@
+NOTE:
+Skript volby_okresy.py sám o sobě neimportuje data při uživatelské volbě "14 Zahraničí",
+ale spolu se skriptem Zahranici.py tento nedostatek sanují. Při volbě 14 je v hlavním skriptu (volby_okresy.py)
+volán skript Zahranici.py. Oba skripty byly vyvíjeny odděleně a mají proto poněkud odlišný design procesu. Výsledek
+je ale identický.
+
 SEZNAM KNIHOVEN
 
 1) requests
