@@ -2,16 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-ENGETO - Datový analytik s Pythonem - 17/10/2024
-Projekt 3 - Extrakce dat z Volby.cz (Volby do PS PČR 2017)
-mICHAL dVOŘÁK, DVMICHAL@GMAIL.COM
-
+ENGETO - Projekt 3 - Datový analytik s pthonem 17/10/2024
+Michal Dvořák, dvmichal@gmail.com
 Tento skript slouží k načítání volebních výsledků z webu https://www.volby.cz
 pro zvolený "okres" (resp. okresní město), následně tato data uloží do dočasného
 JSON souboru a potom uloží konečný výsledek do Excelu. Dočasný JSON soubor se
 po skončení zpracování automaticky smaže.
 Pro podrobnou nápovědu k jednotlivým funkcím viz 'napoveda.md'.
-Poznámka: Skript neobsluhuje uživatelskou volbu 17 Zahraničí, protože má jinou strukturu html.
 """
 
 import requests       # Knihovna pro HTTP požadavky
@@ -21,9 +18,11 @@ import os             # Práce se soubory a operačním systémem (vestavěná v
 from datetime import datetime  # Práce s datem a časem (vestavěná v Pythonu)
 import pandas as pd   # Knihovna pro tabulková data
 import re             # Regulární výrazy (vestavěná v Pythonu)
+import subprocess     # Knihovna pro volání externích procesů (využijeme k volání Zahranici.py)
 
 # Základní URL adresa pro volby
 ZAKLADNI_URL = "https://www.volby.cz/pls/ps2017nss/ps3?xjazyk=CZ"
+
 
 def ziskej_plnou_url(zakladni_url, relativni_url):
     """
@@ -182,15 +181,24 @@ def nacti_data_obce(obec):
 
 def main():
     """
-    Hlavní spouštěcí funkce. 
+    Hlavní spouštěcí funkce.
     1. Načte seznam okresů (okresních měst).
     2. Umožní uživateli vybrat konkrétní okres k analýze.
     3. Načte všechny obce v daném okrese a uloží je do dočasného JSON souboru.
-    4. Poté zpracuje detailní data pro každou obec a uloží je do Excelu.
+    4. Poté zpracuje detailní data o každé obci a uloží je do Excelu.
     5. Smaže dočasný JSON soubor.
     """
+
+    import os
+    import subprocess
+    from datetime import datetime
+    import json
+    import pandas as pd
+
     # Získáme cestu ke složce, odkud je skript spuštěn
     skript_cesta = os.path.dirname(os.path.abspath(__file__))
+    # Sestavíme plnou cestu k souboru Zahranici.py
+    zahranici_script = os.path.join(skript_cesta, "Zahranici.py")
 
     # Vygenerujeme časové razítko pro pojmenování souborů
     casove_razitko = datetime.now().strftime("%Y%m%d_%H%M")
@@ -204,6 +212,13 @@ def main():
     # Uživatel vybere pořadové číslo okresu
     try:
         vyber = int(input("\nZadejte číslo okresního města pro zpracování: "))
+
+        # Pokud uživatel zadá číslo 14, spustíme skript Zahranici.py
+        if vyber == 14:
+            print("Spouštím skript Zahranici.py ...")
+            subprocess.run(["python", zahranici_script])
+            return  # Ukončíme provádění tohoto skriptu
+
         vybrany_okres = next(
             (mesto for mesto in okresni_mesta if mesto["cislo"] == vyber),
             None
@@ -230,7 +245,6 @@ def main():
         data_obce = nacti_data_obce(o)
         vysledky.append(data_obce)
 
-    # Vytvoření DataFrame a export do Excelu
     df = pd.DataFrame(vysledky)
     df.to_excel(excel_soubor, index=False, engine='openpyxl')
 
@@ -239,6 +253,7 @@ def main():
     # Krok 4: Odstranění dočasného JSON souboru
     os.remove(json_soubor)
     print(f"Dočasný soubor '{json_soubor}' byl smazán.")
+
 
 
 if __name__ == "__main__":
