@@ -189,12 +189,6 @@ def main():
     5. Smaže dočasný JSON soubor.
     """
 
-    import os
-    import subprocess
-    from datetime import datetime
-    import json
-    import pandas as pd
-
     # Získáme cestu ke složce, odkud je skript spuštěn
     skript_cesta = os.path.dirname(os.path.abspath(__file__))
     # Sestavíme plnou cestu k souboru Zahranici.py
